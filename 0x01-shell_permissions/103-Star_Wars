@@ -1,2 +1,2 @@
 #!/bin/bash
-xdg-open StarWars
+mplayer -vo caca StarWars IV
