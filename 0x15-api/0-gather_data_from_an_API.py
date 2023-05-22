@@ -1,37 +1,36 @@
 #!/usr/bin/python3
+"""script for parsing web data from an api
 """
-Script that, using this REST API, for a given employee ID, returns
-information about his/her TODO list progress
-"""
-
-import json
-import requests
-from sys import argv
-
-
 if __name__ == "__main__":
+    import json
+    import requests
+    import sys
+    base_url = 'https://jsonplaceholder.typicode.com/'
+    try:
+        employee_id = sys.argv[1]
+    except:
+        print('Usage: {} employee_id'.format(sys.argv[0]))
+        exit(1)
 
-    sessionReq = requests.Session()
+    # grab the info about the user
+    url = base_url + 'users?id={}'.format(employee_id)
+    response = requests.get(url)
+    user = json.loads(response.text)
+    name = user[0].get('name')
 
-    idEmp = argv[1]
-    idURL = 'https://jsonplaceholder.typicode.com/users/{}/todos'.format(idEmp)
-    nameURL = 'https://jsonplaceholder.typicode.com/users/{}'.format(idEmp)
+    # grab the info about the user's tasks
+    url = base_url + 'todos?userId={}'.format(employee_id)
+    response = requests.get(url)
+    objs = json.loads(response.text)
+    completed = 0
+    completed_tasks = []
+    for obj in objs:
+        if obj.get('completed'):
+            completed_tasks.append(obj)
+            completed += 1
 
-    employee = sessionReq.get(idURL)
-    employeeName = sessionReq.get(nameURL)
-
-    json_req = employee.json()
-    name = employeeName.json()['name']
-
-    totalTasks = 0
-
-    for done_tasks in json_req:
-        if done_tasks['completed']:
-            totalTasks += 1
-
-    print("Employee {} is done with tasks({}/{}):".
-          format(name, totalTasks, len(json_req)))
-
-    for done_tasks in json_req:
-        if done_tasks['completed']:
-            print("\t " + done_tasks.get('title'))
+    # print the output about user's task completion
+    print("{} is done with tasks({}/{}):".format(name, completed, len(objs)))
+    # print the output title of completed tasks
+    for task in completed_tasks:
+        print("\t {}".format(task.get('title')))
